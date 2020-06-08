@@ -131,7 +131,7 @@
                 touchTimeout = null;
               }
               angular.element($document).unbind('mousemove', moveListen);
-              // angular.element($document).unbind('touchmove', moveListen);
+              angular.element($document).unbind('touchmove', touchmoveListen);
               element.unbind('mouseup', unbindMoveListen);
               element.unbind('touchend', unbindMoveListen);
               element.unbind('touchcancel', unbindMoveListen);
@@ -144,7 +144,7 @@
                 touchTimeout = null;
                 unbindMoveListen();
                 dragStart(event);
-              }, 3000);
+              }, 1000);
             }
             var moveListen = function (e) {
               e.preventDefault();
@@ -157,10 +157,19 @@
                 dragStart(event);
               }
             };
+            var touchmoveListen = function (e) {
+              e.preventDefault();
+              var eventObj = $helper.eventObj(e);
+              if (!startPosition) {
+                startPosition = { clientX: eventObj.clientX, clientY: eventObj.clientY };
+              }
+              if (Math.abs(eventObj.clientX - startPosition.clientX) + Math.abs(eventObj.clientY - startPosition.clientY) > 10) {
+                unbindMoveListen();
+              }
+            };
 
             angular.element($document).bind('mousemove', moveListen);
-            angular.element($document).bind('touchmove', unbindMoveListen);
-            // angular.element($document).bind('touchmove', moveListen);
+            angular.element($document).bind('touchmove', touchmoveListen);
             // angular.element($document).bind('touchstart', moveListen);
             element.bind('mouseup', unbindMoveListen);
             element.bind('touchend', unbindMoveListen);
