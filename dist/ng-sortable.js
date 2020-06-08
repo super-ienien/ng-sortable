@@ -674,7 +674,7 @@
           };
 
           /**
-           * Listens for a 10px movement before
+           * Listens for a 10px movement before for desktop devices and a 2 second touch for touch devices
            * dragStart is called to allow for
            * a click event on the element.
            *
@@ -683,6 +683,10 @@
           dragListen = function (event) {
 
             var unbindMoveListen = function () {
+              if (touchTimeout) {
+                clearTimeout(touchTimeout);
+                touchTimeout = null;
+              }
               angular.element($document).unbind('mousemove', moveListen);
               angular.element($document).unbind('touchmove', moveListen);
               element.unbind('mouseup', unbindMoveListen);
@@ -691,6 +695,7 @@
             };
 
             var startPosition;
+            var touchTimeout;
             var moveListen = function (e) {
               e.preventDefault();
               var eventObj = $helper.eventObj(e);
@@ -703,8 +708,22 @@
               }
             };
 
+            var touchListen = function (e) {
+              e.preventDefault();
+              if (touchTimeout) {
+                clearTimeout(touchTimeout);
+                touchTimeout = null;
+              }
+              touchTimeout = setTimeout(function () {
+                touchTimeout = null;
+                unbindMoveListen();
+                dragStart(event);
+              }, 3000);
+            };
+
             angular.element($document).bind('mousemove', moveListen);
             angular.element($document).bind('touchmove', moveListen);
+            angular.element($document).bind('touchstart', touchListen);
             element.bind('mouseup', unbindMoveListen);
             element.bind('touchend', unbindMoveListen);
             element.bind('touchcancel', unbindMoveListen);
