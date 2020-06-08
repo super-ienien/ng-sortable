@@ -125,21 +125,27 @@
            * @param event - the event object.
            */
           dragListen = function (event) {
-
             var unbindMoveListen = function () {
               if (touchTimeout) {
                 clearTimeout(touchTimeout);
                 touchTimeout = null;
               }
               angular.element($document).unbind('mousemove', moveListen);
-              angular.element($document).unbind('touchmove', moveListen);
+              // angular.element($document).unbind('touchmove', moveListen);
               element.unbind('mouseup', unbindMoveListen);
               element.unbind('touchend', unbindMoveListen);
               element.unbind('touchcancel', unbindMoveListen);
             };
 
-            var startPosition;
             var touchTimeout;
+            var startPosition;
+            if (hasTouch) {
+              touchTimeout = setTimeout(function () {
+                touchTimeout = null;
+                unbindMoveListen();
+                dragStart(event);
+              }, 3000);
+            }
             var moveListen = function (e) {
               e.preventDefault();
               var eventObj = $helper.eventObj(e);
@@ -152,22 +158,10 @@
               }
             };
 
-            var touchListen = function (e) {
-              e.preventDefault();
-              if (touchTimeout) {
-                clearTimeout(touchTimeout);
-                touchTimeout = null;
-              }
-              touchTimeout = setTimeout(function () {
-                touchTimeout = null;
-                unbindMoveListen();
-                dragStart(event);
-              }, 3000);
-            };
-
             angular.element($document).bind('mousemove', moveListen);
-            angular.element($document).bind('touchmove', moveListen);
-            angular.element($document).bind('touchstart', touchListen);
+            angular.element($document).bind('touchmove', unbindMoveListen);
+            // angular.element($document).bind('touchmove', moveListen);
+            // angular.element($document).bind('touchstart', moveListen);
             element.bind('mouseup', unbindMoveListen);
             element.bind('touchend', unbindMoveListen);
             element.bind('touchcancel', unbindMoveListen);
