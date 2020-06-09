@@ -125,8 +125,9 @@
            * @param event - the event object.
            */
           dragListen = function (event) {
-
-            var unbindMoveListen = function () {
+            console.log('sortable', 'drag listen', event.type);
+            var unbindMoveListen = function (e) {
+              console.log('sortable', 'movelisten', e && e.type);
               angular.element($document).unbind('mousemove', moveListen);
               angular.element($document).unbind('touchmove', moveListen);
               element.unbind('mouseup', unbindMoveListen);
@@ -136,6 +137,7 @@
 
             var startPosition;
             var moveListen = function (e) {
+              console.log('sortable', 'movelisten', e.type);
               e.preventDefault();
               var eventObj = $helper.eventObj(e);
               if (!startPosition) {
@@ -162,6 +164,7 @@
            */
           dragStart = function (event) {
 
+            console.log('sortable', 'drag start', event.type);
             var eventObj, tagName;
 
             if (!hasTouch && (event.button === 2 || event.which === 3)) {
@@ -317,6 +320,7 @@
            */
           dragMove = function (event) {
 
+            console.log('sortable', 'drag move', event.type);
             var eventObj, targetX, targetY, targetScope, targetElement;
 
             if (hasTouch && $helper.isTouchInvalid(event)) {
@@ -473,6 +477,7 @@
            * @param event - the event object.
            */
           dragEnd = function (event) {
+            console.log('sortable', 'drag end', event.type);
             // Ignore event if not handled
             if (!dragHandled) {
               return;
@@ -506,6 +511,7 @@
            * @param event - the event object.
            */
           dragCancel = function (event) {
+            console.log('sortable', 'drag cancel', event.type);
             // Ignore event if not handled
             if (!dragHandled) {
               return;
@@ -530,16 +536,20 @@
             if (hasTouch) {
               if (isLongTouch) {
                 if (isIOS) {
+                  console.log('sortable', 'ios longtouch bind');
                   element.bind('touchstart', longTouchStart);
                   element.bind('touchend', longTouchCancel);
                   element.bind('touchmove', longTouchCancel);
                 } else {
+                  console.log('sortable', 'classic longtouch bind');
                   element.bind('contextmenu', dragListen);
                 }
               } else {
+                console.log('sortable', 'touch start listen');
                 element.bind('touchstart', dragListen);
               }
             }
+            console.log('sortable', 'mousedown listen');
             element.bind('mousedown', dragListen);
           };
 
