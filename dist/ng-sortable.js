@@ -591,8 +591,8 @@
   /**
    * Directive for sortable item handle.
    */
-  mainModule.directive('asSortableItemHandle', ['sortableConfig', '$helper', '$window', '$document', '$timeout',
-    function (sortableConfig, $helper, $window, $document, $timeout) {
+  mainModule.directive('asSortableItemHandle', ['sortableConfig', '$helper', '$window', '$document',
+    function (sortableConfig, $helper, $window, $document) {
       return {
         require: '^asSortableItem',
         scope: true,
@@ -682,6 +682,7 @@
            * @param event - the event object.
            */
           dragListen = function (event) {
+            longTouchCancel();
             console.log('sortable', 'drag listen', event.type);
             var unbindMoveListen = function (e) {
               console.log('sortable', 'movelisten', e && e.type);
@@ -1110,6 +1111,7 @@
            * Unbinds the drag start events.
            */
           unbindDrag = function () {
+            longTouchCancel();
             element.unbind('touchstart', longTouchStart);
             element.unbind('touchend', longTouchCancel);
             element.unbind('touchmove', longTouchCancel);
@@ -1132,7 +1134,8 @@
            */
           longTouchStart = function(event) {
             console.log('sortable', 'long touch start', event.type);
-            longTouchTimer = $timeout(function() {
+            longTouchTimer = setTimeout(function() {
+              longTouchTimer = null;
               dragListen(event);
             }, 500);
           };
@@ -1141,8 +1144,11 @@
            * cancel the long touch and its timer.
            */
           longTouchCancel = function(event) {
-            console.log('sortable', 'long touch cancel', event && event.type);
-            $timeout.cancel(longTouchTimer);
+            if (longTouchTimer) {
+              console.log('sortable', 'long touch cancel', event && event.type);
+              clearTimeout(longTouchTimer);
+              longTouchTimer = null;
+            }
           };
 
           //bind drag start events.
