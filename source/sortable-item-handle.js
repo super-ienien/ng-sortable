@@ -73,6 +73,7 @@
             isPlaceHolderPresent,//is placeholder present.
             isDisabled = false, // drag enabled
             escapeListen, // escape listen event
+            contextmenuListen, // contextmenu listen event
             isLongTouch = false; //long touch disabled.
 
           hasTouch = 'ontouchstart' in $window;
@@ -535,21 +536,17 @@
           bindDrag = function () {
             if (hasTouch) {
               if (isLongTouch) {
-                if (isIOS) {
-                  console.log('sortable', 'ios longtouch bind');
-                  element.bind('touchstart', longTouchStart);
-                  element.bind('touchend', longTouchCancel);
-                  element.bind('touchmove', longTouchCancel);
-                } else {
-                  console.log('sortable', 'classic longtouch bind');
-                  element.bind('contextmenu', dragListen);
-                }
+                console.log('sortable', 'ios longtouch bind');
+                element.bind('touchstart', longTouchStart);
+                element.bind('touchend', longTouchCancel);
+                element.bind('touchmove', longTouchCancel);
               } else {
                 console.log('sortable', 'touch start listen');
                 element.bind('touchstart', dragListen);
               }
             }
             console.log('sortable', 'mousedown listen');
+            element.bind('contextmenu', contextmenuListen);
             element.bind('mousedown', dragListen);
           };
 
@@ -565,6 +562,12 @@
             element.unbind('mousedown', dragListen);
           };
 
+          contextmenuListen = function (event) {
+            console.log('sortable', 'context menu', event.type);
+            event.preventDefault();
+            console.log('sortable', 'contextmenu');
+          };
+
           /**
            * starts a timer to detect long touch on iOS devices. If touch held for more than 500ms,
            * it would be considered as long touch.
@@ -572,6 +575,7 @@
            * @param event - the event object.
            */
           longTouchStart = function(event) {
+            console.log('sortable', 'long touch start', event.type);
             longTouchTimer = $timeout(function() {
               dragListen(event);
             }, 500);
@@ -580,7 +584,8 @@
           /**
            * cancel the long touch and its timer.
            */
-          longTouchCancel = function() {
+          longTouchCancel = function(event) {
+            console.log('sortable', 'long touch cancel', event && event.type);
             $timeout.cancel(longTouchTimer);
           };
 
