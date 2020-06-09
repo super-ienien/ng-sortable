@@ -198,10 +198,8 @@
             }
           }
 
-          element.css({
-            'left': element.x + 'px',
-            'top': element.y + 'px'
-          });
+          element[0].style.left = element.x + 'px';
+          element[0].style.top = element.y + 'px';
 
           this.calculatePosition(pos, event);
         },
