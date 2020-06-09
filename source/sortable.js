@@ -18,7 +18,7 @@
     $scope.callbacks = null;
     $scope.type = 'sortable';
     $scope.options = {
-      longTouch: false
+      longTouch: true
     };
     $scope.isDisabled = false;
 
