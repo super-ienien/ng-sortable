@@ -350,9 +350,9 @@
               targetY = eventObj.pageY - ($window.pageYOffset || $document[0].documentElement.scrollTop);
 
               //IE fixes: hide show element, call element from point twice to return pick correct element.
-              dragElement.addClass(sortableConfig.hiddenClass);
-              targetElement = angular.element($document[0].elementFromPoint(targetX, targetY));
-              dragElement.removeClass(sortableConfig.hiddenClass);
+              // dragElement.addClass(sortableConfig.hiddenClass);
+              // targetElement = angular.element($document[0].elementFromPoint(targetX, targetY));
+              // dragElement.removeClass(sortableConfig.hiddenClass);
 
               $helper.movePosition(eventObj, dragElement, itemPosition, containment, containerPositioning, scrollableContainer);
 
