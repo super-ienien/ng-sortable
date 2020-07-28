@@ -74,8 +74,17 @@
             isDisabled = false, // drag enabled
             escapeListen, // escape listen event
             contextmenuListen, // contextmenu listen event
+            hasNativeDragAndDrop, // contextmenu listen event
+            domElement, // contextmenu listen event
+            rollbackOpacity, // contextmenu listen event
+            dropTargetElement, // contextmenu listen event
+            dropTargetRollbackOpacity, // contextmenu listen event
+            type, // contextmenu listen event
             isLongTouch = false; //long touch disabled.
 
+
+          domElement = element[0];
+          hasNativeDragAndDrop = typeof DragEvent !== 'undefined';
           hasTouch = 'ontouchstart' in $window;
           isIOS = /iPad|iPhone|iPod/.test($window.navigator.userAgent) && !$window.MSStream;
 
@@ -105,6 +114,7 @@
           });
 
           scope.$on('$destroy', function () {
+            longTouchCancel();
             angular.element($document[0].body).unbind('keydown', escapeListen);
           });
 
@@ -535,33 +545,50 @@
            * Binds the drag start events.
            */
           bindDrag = function () {
-            if (hasTouch) {
-              if (isLongTouch) {
-                console.log('sortable', 'ios longtouch bind');
-                element.bind('touchstart', longTouchStart);
-                element.bind('touchend', longTouchCancel);
-                element.bind('touchmove', longTouchCancel);
-              } else {
-                console.log('sortable', 'touch start listen');
-                element.bind('touchstart', dragListen);
+            if (hasNativeDragAndDrop) {
+              type = scope.sortableScope.options.type || 'sortable/all';
+              domElement.addEventListener('dragstart', onDragStart, false);
+              domElement.addEventListener('dragenter', onDragEnter);
+              domElement.addEventListener('dragover', onDragOver);
+              domElement.addEventListener('dragleave', onDragLeave);
+              domElement.setAttribute('draggable', 'true');
+              domElement.acceptedDropType = type;
+            } else {
+              if (hasTouch) {
+                if (isLongTouch) {
+                  console.log('sortable', 'ios longtouch bind');
+                  element.bind('touchstart', longTouchStart);
+                  element.bind('touchend', longTouchCancel);
+                  element.bind('touchmove', longTouchCancel);
+                } else {
+                  console.log('sortable', 'touch start listen');
+                  element.bind('touchstart', dragListen);
+                }
               }
+              console.log('sortable', 'mousedown listen');
+              element.bind('contextmenu', contextmenuListen);
+              element.bind('mousedown', dragListen);
             }
-            console.log('sortable', 'mousedown listen');
-            element.bind('contextmenu', contextmenuListen);
-            element.bind('mousedown', dragListen);
           };
 
           /**
            * Unbinds the drag start events.
            */
           unbindDrag = function () {
-            longTouchCancel();
-            element.unbind('touchstart', longTouchStart);
-            element.unbind('touchend', longTouchCancel);
-            element.unbind('touchmove', longTouchCancel);
-            element.unbind('contextmenu', dragListen);
-            element.unbind('touchstart', dragListen);
-            element.unbind('mousedown', dragListen);
+            if (hasNativeDragAndDrop) {
+              domElement.removeEventListener('dragstart', onDragStart);
+              domElement.removeEventListener('dragenter', onDragEnter);
+              domElement.removeEventListener('dragover', onDragOver);
+              domElement.removeEventListener('dragleave', onDragLeave);
+            } else {
+              longTouchCancel();
+              element.unbind('touchstart', longTouchStart);
+              element.unbind('touchend', longTouchCancel);
+              element.unbind('touchmove', longTouchCancel);
+              element.unbind('contextmenu', dragListen);
+              element.unbind('touchstart', dragListen);
+              element.unbind('mousedown', dragListen);
+            }
           };
 
           contextmenuListen = function (event) {
@@ -628,6 +655,141 @@
             angular.element($document).unbind('mouseup', dragEnd);
             angular.element($document).unbind('mousemove', dragMove);
           };
+          /**
+           * Binds the events based on the actions.
+           */
+          function bindNativeEvents () {
+            // document.addEventListener('drag', onDrag);
+            document.addEventListener('dragend', onDragEnd);
+            // document.addEventListener('drop', onDrop);
+          }
+
+          /**
+           * Un binds the events for drag support.
+           */
+          function unBindNativeEvents () {
+            // document.removeEventListener('drag', onDrag);
+            document.removeEventListener('dragend', onDragEnd);
+
+            // document.removeEventListener('drop', onDrop);
+          }
+
+          function onDragStart (event) {
+            console.log('start drag', event);
+            var tagName;
+
+            event.dataTransfer.setData(type, '1');
+
+            scope.sortableScope = scope.sortableScope || scope.itemScope.sortableScope; //isolate directive scope issue.
+            scope.callbacks = scope.callbacks || scope.itemScope.callbacks; //isolate directive scope issue.
+
+            if (scope.itemScope.sortableScope.options.clone || (scope.itemScope.sortableScope.options.ctrlClone && event.ctrlKey)) {
+              // Clone option is true
+              // or Ctrl clone option is true & the ctrl key was pressed when the user innitiated drag
+              scope.itemScope.sortableScope.cloning = true;
+            } else {
+              scope.itemScope.sortableScope.cloning = false;
+            }
+
+            // (optional) Scrollable container as reference for top & left offset calculations, defaults to Document
+            // scrollableContainer = angular.element($document[0].querySelector(scope.sortableScope.options.scrollableContainer)).length > 0 ?
+            //     $document[0].querySelector(scope.sortableScope.options.scrollableContainer) : $document[0].documentElement;
+
+            // containment = (scope.sortableScope.options.containment)? $helper.findAncestor(element, scope.sortableScope.options.containment):angular.element($document[0].body);
+            //capture mouse move on containment.
+            // containment.css('cursor', 'move');
+            // containment.css('cursor', '-webkit-grabbing');
+            // containment.css('cursor', '-moz-grabbing');
+            // containment.addClass('as-sortable-un-selectable');
+
+            // container positioning
+            // containerPositioning = scope.sortableScope.options.containerPositioning || 'absolute';
+
+            // dragItemInfo = $helper.dragItem(scope);
+            tagName = scope.itemScope.element.prop('tagName');
+
+            // dragElement = angular.element($document[0].createElement(scope.sortableScope.element.prop('tagName')))
+            // .addClass(scope.sortableScope.element.attr('class')).addClass(sortableConfig.dragClass);
+            // dragElement.css('width', $helper.width(scope.itemScope.element) + 'px');
+            // dragElement.css('height', $helper.height(scope.itemScope.element) + 'px');
+
+            // placeHolder = createPlaceholder(scope.itemScope)
+            // .addClass(sortableConfig.placeHolderClass).addClass(scope.sortableScope.options.additionalPlaceholderClass);
+            // placeHolder.css('width', $helper.width(scope.itemScope.element) + 'px');
+            // placeHolder.css('height', $helper.height(scope.itemScope.element) + 'px');
+            //
+            // placeElement = angular.element($document[0].createElement(tagName));
+            // if (sortableConfig.hiddenClass) {
+            //   placeElement.addClass(sortableConfig.hiddenClass);
+            // }
+
+            // itemPosition = $helper.positionStarted(event, scope.itemScope.element, scrollableContainer);
+
+            // fill the immediate vacuum.
+            // if (!scope.itemScope.sortableScope.options.clone) {
+            //   scope.itemScope.element.after(placeHolder);
+            // }
+
+            if (scope.itemScope.sortableScope.cloning) {
+              // clone option is enabled or triggered, so clone the element.
+              // dragElement.append(scope.itemScope.element.clone());
+            } else {
+              // add hidden placeholder element in original position.
+              // scope.itemScope.element.after(placeElement);
+              rollbackOpacity = scope.itemScope.element[0].style.opacity;
+              setTimeout(function () {
+                scope.itemScope.element[0].style.opacity = 0;
+              });
+              // not cloning, so use the original element.
+              // dragElement.append(scope.itemScope.element);
+            }
+
+            // containment.append(dragElement);
+            // $helper.movePosition(event, dragElement, itemPosition, containment, containerPositioning, scrollableContainer);
+
+            scope.sortableScope.$apply(function () {
+              // scope.callbacks.dragStart(dragItemInfo.eventArgs());
+              scope.callbacks.dragStart();
+            });
+            bindNativeEvents();
+          }
+
+          function onDragEnd (event) {
+            console.log('sortable', 'drag end', event.type);
+            //rollback all the changes.
+            // if (!scope.itemScope.sortableScope.cloning) {
+            //   placeElement.replaceWith(scope.itemScope.element);
+            // }
+            // placeHolder.remove();
+            scope.itemScope.element[0].style.opacity = rollbackOpacity;
+            scope.sortableScope.$apply(function () {
+              // scope.callbacks.dragEnd(dragItemInfo.eventArgs());
+              scope.callbacks.dragEnd();
+            });
+            unBindNativeEvents();
+          }
+
+          function onDragEnter (event) {
+            console.log ('enter', event.target.acceptedDropType, type, event);
+            if (event.dataTransfer.types.includes(type)) {
+              console.log('sortable', 'drag enter', event.type);
+              event.preventDefault();
+              dropTargetRollbackOpacity = domElement.style.opacity;
+              domElement.style.opacity = 0;
+            }
+          }
+
+          function onDragOver (event) {
+            if (event.dataTransfer.types.includes(type)) {
+              console.log('sortable', 'drag over', event.type);
+              event.preventDefault();
+            }
+          }
+
+          function onDragLeave (event) {
+            console.log('sortable', 'drag leave', domElement.style.opacity, event, event.target === domElement);
+            domElement.style.opacity = dropTargetRollbackOpacity;
+          }
         }
       };
     }]);

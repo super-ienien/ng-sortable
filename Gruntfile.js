@@ -1,5 +1,3 @@
-/*jshint undef: false, unused: false, indent: 2*/
-
 module.exports = function (grunt) {
   'use strict';
   // load all grunt tasks automatically
@@ -39,7 +37,7 @@ module.exports = function (grunt) {
           '<%= cfg.srcDir %>/**/*.*',
           '!<%= cfg.buildDir %>/*.*'
         ],
-        tasks: ['jshint:source', 'clean:build', 'concat:build', 'uglify:build', 'cssmin', 'copy']
+        tasks: ['clean:build', 'concat:build', 'uglify:build', 'cssmin', 'copy']
       },
       cssmin: {
         files: [
@@ -75,26 +73,6 @@ module.exports = function (grunt) {
             dest: '<%= cfg.demoDir %>/'
           }
         ]
-      }
-    },
-
-    jshint: {
-      options: {
-        'jshintrc': true,
-        reporter: require('jshint-stylish')
-      },
-      source: {
-        files: {
-          src: ['<%= cfg.srcDir %>/**/*.js']
-        }
-      },
-      demo: {
-        files: {
-          src: [
-            '<%= cfg.demoDir %>/**/*.js',
-            '!<%= cfg.demoDir %>/bower_components/**/*'
-          ]
-        }
       }
     },
 
@@ -210,7 +188,7 @@ module.exports = function (grunt) {
 
   // default
   grunt.registerTask('default', ['tasks_list:project']);
-  grunt.registerTask('build', ['jshint:source', 'clean:build', 'concat:build', 'cssmin', 'uglify:build', 'copy']);
+  grunt.registerTask('build', ['clean:build', 'concat:build', 'cssmin', 'uglify:build', 'copy']);
   grunt.registerTask('serve', ['open', 'connect:demo', 'watch']);
   grunt.registerTask('test', ['karma:single']);
   grunt.registerTask('test:continuous', ['karma:continuous']);
