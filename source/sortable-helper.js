@@ -166,7 +166,7 @@
          * @param containerPositioning - absolute or relative positioning.
          * @param {Object} [scrollableContainer] (optional) Scrollable container object
          */
-        movePosition: function (event, element, pos, container, containerPositioning, scrollableContainer) {
+        movePosition: function (event, element, pos, container, containerPositioning, scrollableContainer, softContainment) {
           var bounds;
           var useRelative = (containerPositioning === 'relative');
 
@@ -179,22 +179,24 @@
             if (useRelative) {
               // reduce positioning by bounds
               element.x -= bounds.left;
-              element.y -= bounds.top;
+              element.y -= bounds.top - (container[0].scrollTop);
 
               // reset bounds
               bounds.left = 0;
               bounds.top = 0;
             }
 
-            if (element.x < bounds.left) {
-              element.x = bounds.left;
-            } else if (element.x >= bounds.width + bounds.left - this.offset(element).width) {
-              element.x = bounds.width + bounds.left - this.offset(element).width;
-            }
-            if (element.y < bounds.top) {
-              element.y = bounds.top;
-            } else if (element.y >= bounds.height + bounds.top - this.offset(element).height) {
-              element.y = bounds.height + bounds.top - this.offset(element).height;
+            if (!softContainment) {
+              if (element.x < bounds.left) {
+                element.x = bounds.left;
+              } else if (element.x >= bounds.width + bounds.left - this.offset(element).width) {
+                element.x = bounds.width + bounds.left - this.offset(element).width;
+              }
+              if (element.y < bounds.top) {
+                element.y = bounds.top;
+              } else if (element.y >= bounds.height + bounds.top - this.offset(element).height) {
+                element.y = bounds.height + bounds.top - this.offset(element).height;
+              }
             }
           }
 

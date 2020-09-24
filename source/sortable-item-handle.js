@@ -73,6 +73,7 @@
             isDisabled = false, // drag enabled
             escapeListen, // escape listen event
             contextmenuListen, // contextmenu listen event
+            lastMoveEvent, // contextmenu listen event
             isLongTouch = false; //long touch disabled.
 
           hasTouch = 'ontouchstart' in $window;
@@ -331,7 +332,7 @@
               return;
             }
             if (dragElement) {
-
+              lastMoveEvent = event;
               event.preventDefault();
 
               eventObj = $helper.eventObj(event);
@@ -340,7 +341,7 @@
               // rerenderings on each mouse move event
               if (scope.callbacks.dragMove !== angular.noop) {
                 scope.sortableScope.$apply(function () {
-                  scope.callbacks.dragMove(itemPosition, containment, eventObj);
+                  scope.callbacks.dragMove(itemPosition, containment, eventObj, dragElement, function () {dragMove(lastMoveEvent)});
                 });
               }
 
@@ -352,7 +353,7 @@
               targetElement = angular.element($document[0].elementFromPoint(targetX, targetY));
               dragElement.removeClass(sortableConfig.hiddenClass);
 
-              $helper.movePosition(eventObj, dragElement, itemPosition, containment, containerPositioning, scrollableContainer);
+              $helper.movePosition(eventObj, dragElement, itemPosition, containment, containerPositioning, scrollableContainer, !!scope.options.softContainment);
 
               //Set Class as dragging starts
               dragElement.addClass(sortableConfig.dragging);
@@ -467,6 +468,7 @@
             dragElement.remove();
             dragElement = null;
             dragHandled = false;
+            lastMoveEvent = null;
             containment.css('cursor', '');
             containment.removeClass('as-sortable-un-selectable');
             element.removeClass('as-sortable-drag-listen');
