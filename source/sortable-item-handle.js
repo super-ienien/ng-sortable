@@ -249,7 +249,7 @@
             $helper.movePosition(eventObj, dragElement, itemPosition, containment, containerPositioning, scrollableContainer);
 
             scope.sortableScope.$apply(function () {
-              scope.callbacks.dragStart(dragItemInfo.eventArgs());
+              scope.callbacks.dragStart(dragItemInfo.eventArgs(), itemPosition, containment);
             });
             bindEvents();
           };
